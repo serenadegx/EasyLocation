@@ -237,8 +237,8 @@ public class MainActivity extends WrapperPermissionActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
         EasyLocation.with(this).location().stop();
     }
 }
