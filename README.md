@@ -8,7 +8,7 @@
 
 4.附赠封装6.0权限Activity类
 
-![image](https://github.com/serenadegx/ShimmerLoading/blob/master/shine.gif)
+![image](https://github.com/serenadegx/EasyLocation/blob/master/1540976253253.gif)
 
 Add it in your root build.gradle at the end of repositories:
 
