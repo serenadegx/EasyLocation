@@ -1,4 +1,4 @@
-package com.example.serenadegx.demo_message;
+package com.example.serenadegx.demo_message.utils;
 
 public class ContactsDetail {
     public String id;

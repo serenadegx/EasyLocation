@@ -2,8 +2,10 @@ package com.example.serenadegx.demo_message;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -11,19 +13,31 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.easylocation.location.EasyLocation;
 import com.example.easylocation.location.EasyLocationListener;
 import com.example.easylocation.location.WrapperPermissionActivity;
+import com.example.serenadegx.demo_message.utils.AppInfo;
+import com.example.serenadegx.demo_message.utils.Detail;
+import com.example.serenadegx.demo_message.utils.MDDUtils;
+import com.example.serenadegx.demo_message.utils.SMSDetail;
+import com.google.gson.Gson;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,10 +53,48 @@ public class MainActivity extends WrapperPermissionActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv = findViewById(R.id.tv);
-        requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG,
-                        Manifest.permission.READ_SMS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+        requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG,
+                        Manifest.permission.READ_SMS, Manifest.permission.ACCESS_FINE_LOCATION},
                 111);
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectContacts();
+            }
+        });
 
+        MyPerson myPerson = new Gson().fromJson("{\"my_name\":\"interest\"}", MyPerson.class);
+        Log.i("Mango","myPerson's name:"+myPerson.getMy_name());
+    }
+
+    private void selectContacts() {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, 1);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data != null) {
+            ContentResolver reContentResolverol = getContentResolver();
+            Uri contactData = data.getData();
+            Cursor cursor = managedQuery(contactData, null, null, null, null);
+            cursor.moveToFirst();
+            String username = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+            String contactId = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+            Cursor phone = reContentResolverol.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    null,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + contactId,
+                    null,
+                    null);
+            while (phone.moveToNext()) {
+                String usernumber = phone.getString(phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                String name = phone.getString(phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                tv.setText(tv.getText().toString() + "    " + name + "    " + usernumber);
+            }
+
+        }
     }
 
     @Override
@@ -52,30 +104,93 @@ public class MainActivity extends WrapperPermissionActivity {
 //        getCallLogs(100);
 //        getThirdApp();
 //        getLocation();
-        EasyLocation
-                .with(this)
-                .location()
-                .start(new EasyLocationListener() {
-                    @Override
-                    public void onLocationListenerSuccess(Location location) {
-                        Log.i(TAG, "经度：" + location.getLongitude() + "  纬度：" + location.getLatitude() +
-                                "   定位方式：" + location.getProvider());
-                        tv.setText("经度：" + location.getLongitude() + "  纬度：" + location.getLatitude() +
-                                "   定位方式：" + location.getProvider());
-                    }
+//        Detail detail = new Detail();
+//        detail.sms = MDDUtils.getSMS(this, 10);
+//        detail.callLogs = MDDUtils.getCallLogs(this, 10);
+//        detail.appInfo = MDDUtils.getThirdApp(this);
+//        detail.contacts = MDDUtils.getContacts(this);
+//        String json = new Gson().toJson(detail, Detail.class);
 
-                    @Override
-                    public void onLocationListenerError(String message) {
-                        Log.i(TAG, message);
-                        Toast.makeText(MainActivity.this, "无可用定位，请手动打开定位", Toast.LENGTH_SHORT).show();
-                    }
+//        MDDUtils.getCallLogs(this, 5);
+//        MDDUtils.getContacts(this,5);
+        MDDUtils.getThirdAppDetails(this,5);
+        MDDUtils.getThirdAppPackage(this, 5);
+        MDDUtils.getSMS(this, 5);
+//        EasyLocation
+//                .with(this)
+//                .location()
+//                .start(new EasyLocationListener() {
+//                    @Override
+//                    public void onLocationListenerSuccess(Location location) {
+//                        Log.i(TAG, "经度：" + location.getLongitude() + "  纬度：" + location.getLatitude() +
+//                                "   定位方式：" + location.getProvider());
+//                        tv.setText("经度：" + location.getLongitude() + "  纬度：" + location.getLatitude() +
+//                                "   定位方式：" + location.getProvider() + "   " + location.getExtras());
+//                        Detail detail = new Detail();
+//                        detail.mobile = MDDUtils.getLocalNumber(MainActivity.this);
+//                        detail.mobileIMEI = MDDUtils.getIMEI(MainActivity.this);
+//                        detail.mobileIMSI = MDDUtils.getIMSI(MainActivity.this);
+//                        detail.mobileGPSLongitude = String.valueOf(location.getLongitude());
+//                        detail.mobileGPSLatitude = String.valueOf(location.getLatitude());
+//                        detail.mobileContactList = MDDUtils.getContacts(MainActivity.this,0);
+//                        detail.mobileAppList = getAppList();
+//                        detail.mobileAppPackages = getAppPackages();
+//                        detail.mobileCallRecords = MDDUtils.getCallLogs(MainActivity.this, 0);
+//                        detail.mobileSMSRecords = MDDUtils.getSMS(MainActivity.this, 0);
+//
+//                        writeString(new Gson().toJson(detail, Detail.class));
+//                    }
+//
+//                    @Override
+//                    public void onLocationListenerError(String message) {
+//                        Log.i(TAG, message);
+//                        Toast.makeText(MainActivity.this, "无可用定位，请手动打开定位", Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    @Override
+//                    public void onNotPermission() {
+//                        Log.i(TAG, "无权限");
+//                        Toast.makeText(MainActivity.this, "无权限", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+    }
 
-                    @Override
-                    public void onNotPermission() {
-                        Log.i(TAG, "无权限");
-                        Toast.makeText(MainActivity.this, "无权限", Toast.LENGTH_SHORT).show();
-                    }
-                });
+    private List<String> getAppPackages() {
+        List<String> data = new ArrayList<>();
+        for (AppInfo appInfo :
+                MDDUtils.getThirdApp(this, 0)) {
+            data.add(appInfo.getPackageName());
+        }
+        return data;
+    }
+
+    private List<String> getAppList() {
+        List<String> data = new ArrayList<>();
+        for (AppInfo appInfo :
+                MDDUtils.getThirdApp(this, 0)) {
+            data.add(appInfo.getLabel());
+        }
+        return data;
+    }
+
+    private void writeString(String json) {
+        File cacheDir = getCacheDir();
+        File newFile = new File(Environment.getExternalStorageDirectory(), "json.txt");
+
+        try {
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(newFile);
+            OutputStreamWriter osw = new OutputStreamWriter(fos, "utf-8");
+            osw.write(json);
+            osw.close();
+            fos.close();
+            Log.i("Mango", "写入成功");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 //    private String[] getLocation() {
@@ -241,4 +356,6 @@ public class MainActivity extends WrapperPermissionActivity {
         super.onDestroy();
         EasyLocation.with(this).location().stop();
     }
+
+
 }
