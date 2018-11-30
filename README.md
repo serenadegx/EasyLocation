@@ -35,7 +35,7 @@ remove：
 @Override
 protected void onDestroy() {
 
-      super.onPause();
+      super.onDestroy();
   
       EasyLocation.with(this).location().stop();
   
