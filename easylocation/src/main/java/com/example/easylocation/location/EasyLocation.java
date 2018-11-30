@@ -20,7 +20,7 @@ public class EasyLocation {
         this(new Builder(context));
     }
 
-    private EasyLocation(Builder builder){
+    private EasyLocation(Builder builder) {
         this.context = builder.context;
         this.locationManager = builder.locationManager;
         this.minTime = builder.minTime;
@@ -60,14 +60,14 @@ public class EasyLocation {
 
     private LocationControl location(LocationManager locationManager) {
         List<String> providers = locationManager.getProviders(true);
-        if (providers.contains(LocationManager.GPS_PROVIDER)) {//
-            provider = LocationManager.GPS_PROVIDER;
-        } else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+        if (providers.contains(LocationManager.NETWORK_PROVIDER)) {//
             provider = LocationManager.NETWORK_PROVIDER;
+        } else if (providers.contains(LocationManager.GPS_PROVIDER)) {
+            provider = LocationManager.GPS_PROVIDER;
         } else {
             Log.i(TAG, "无可用定位");
         }
-        return new LocationControl(context, locationManager, provider,minTime,minDistance);
+        return new LocationControl(context, locationManager, provider, minTime, minDistance);
     }
 
     private static class Builder {
@@ -83,17 +83,17 @@ public class EasyLocation {
             minDistance = 2.0f;
         }
 
-        public Builder setMinTime(long minTime){
+        public Builder setMinTime(long minTime) {
             this.minTime = minTime;
             return this;
         }
 
-        public Builder setMinDistance(float minDistance){
+        public Builder setMinDistance(float minDistance) {
             this.minDistance = minDistance;
             return this;
         }
 
-        public EasyLocation build(){
+        public EasyLocation build() {
             return new EasyLocation(this);
         }
     }
